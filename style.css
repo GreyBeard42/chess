@@ -1,0 +1,45 @@
+body {
+    background-color: rgb(217, 222, 219);
+    color: #22472d;
+}
+#content {
+    border: #22472d solid 5px;
+    width: min-content;
+    color: #426d4e;
+    image-rendering: pixelated;
+}
+#board {
+    background-color: #edfff3;
+    width: min(80vw, 80vh);
+    aspect-ratio: 1 / 1;
+    user-select: none;
+}
+#board div {
+    display: flex;
+}
+.tile {
+    width: calc(100% / 8);
+    aspect-ratio: 1 / 1;
+    position: relative;
+}
+.tile div {
+    font-size: 17px;
+    font-weight: 600;
+}
+.tile img {
+    width: min(6vw, 6vh);
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: min(1vw, 1vh);
+    left: min(2vw, 2vh);
+}
+.markup {
+    display: none;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 50%;
+}
