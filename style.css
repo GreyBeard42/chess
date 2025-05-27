@@ -50,3 +50,11 @@ body {
     font-size: 30px;
     left: calc(min(40vw, 40vh) - 68px);
 }
+#top {
+    color: #22472d;
+}
+#top button {
+    color: #22472d;
+    background: none;
+    border: #22472d solid 2px;
+}

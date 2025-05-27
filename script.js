@@ -1,3 +1,5 @@
+let imagepre = "https://cdn.jsdelivr.net/gh/GreyBeard42/chess@main/"
+
 class Tile {
     constructor(x,y,img=0,side=0,inverted=false) {
         this.cords = {x: x, y: y}
@@ -43,9 +45,9 @@ class Tile {
         if(img>=0) {
             this.side = side
             if(this.side===0) {
-                this.peice.src = `images/0${img+6}.png`
-                if(img+6>9) this.peice.src = `images/${img+6}.png`
-            } else this.peice.src = `images/0${img}.png`
+                this.peice.src = `${imagepre}images/0${img+6}.png`
+                if(img+6>9) this.peice.src = `${imagepre}images/${img+6}.png`
+            } else this.peice.src = `${imagepre}images/0${img}.png`
         } else this.peice.style.display = "none"
         this.element.appendChild(this.peice)
     }
@@ -56,9 +58,9 @@ class Tile {
         if(this.img>=0) {
             this.peice.style.display = "block"
             if(this.side===0) {
-                this.peice.src = `images/0${this.img+6}.png`
-                if(this.img+6>9) this.peice.src = `images/${this.img+6}.png`
-            } else this.peice.src = `images/0${this.img}.png`
+                this.peice.src = `${imagepre}images/0${this.img+6}.png`
+                if(this.img+6>9) this.peice.src = `${imagepre}images/${this.img+6}.png`
+            } else this.peice.src = `${imagepre}images/0${this.img}.png`
         } else this.peice.style.display = "none"
     }
     getMoves() {
