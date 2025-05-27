@@ -43,3 +43,10 @@ body {
     left: 0;
     opacity: 50%;
 }
+#copied {
+    background-color:#edfff3;
+    position: absolute;
+    top: 0;
+    font-size: 30px;
+    left: calc(min(40vw, 40vh) - 68px);
+}
