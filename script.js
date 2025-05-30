@@ -1,12 +1,12 @@
 let imagepre = "https://cdn.jsdelivr.net/gh/GreyBeard42/chess@main/"
 
 class Tile {
-    constructor(x,y,img=0,side=0,inverted=false) {
+    constructor(x,y,img=0,side=0,inverted=false,hasmoved=false) {
         this.cords = {x: x, y: y}
         this.img = img
         this.element = document.createElement("div")
         this.element.classList.add("tile")
-        this.hasmoved = false
+        this.hasmoved = hasmoved
 
         //Checkered coloring
         if((x+y)%2===1) {
@@ -25,23 +25,24 @@ class Tile {
         if(numx) {
             let lilnum = document.createElement("div")
             lilnum.innerText = y+1
-            lilnum.style = "position: absolute; top: 0; left: 1px;"
+            lilnum.style = "position: absolute; bottom: 0; right: 1px;"
             if(inverted) {
                 lilnum.innerText = 7-y+1
                 lilnum.style = "position: absolute; top: 0; right: 1px;"
             }
             this.element.appendChild(lilnum)
         }
-        if(y==7) {
+        if(y===7) {
             let lilnum = document.createElement("div")
-            lilnum.innerText = ["a","b","c","d","e","f","g","h"][7-x]
-            lilnum.style = "position: absolute; bottom: 0; right: 5px;"
+            lilnum.innerText = ["a","b","c","d","e","f","g","h"][x]
+            lilnum.style = "position: absolute; top: 0; right: 5px;"
             if(inverted) lilnum.style = "position: absolute; bottom: 0; left: 5px;"
             this.element.appendChild(lilnum)
         }
 
         //Peice
         this.peice = document.createElement("img")
+        this.peice.classList.add("peice")
         if(img>=0) {
             this.side = side
             if(this.side===0) {
@@ -85,8 +86,8 @@ class Tile {
                 this.moves.push([1,-1])
             }
             
-            tile = game.board[`${this.cords.x},${this.cords.y-1}`]
-            if(this.side === 0) tile = game.board[`${this.cords.x},${this.cords.y+1}`]
+            tile = game.board[`${this.cords.x},${this.cords.y-2}`]
+            if(this.side === 0) tile = game.board[`${this.cords.x},${this.cords.y+2}`]
             if(tile) if(!this.hasmoved && tile.img === -1) {
                 tile = game.board[`${this.cords.x},${this.cords.y-2}`]
                 if(this.side === 0) tile = game.board[`${this.cords.x},${this.cords.y+2}`]
@@ -195,9 +196,58 @@ class Tile {
     isMove(x,y) {
         this.getMoves()
         let is = false
-        this.moves.forEach((move) => {
-            if(move[0] === x && move[1] === y) is = true
+
+        /* let king = undefined
+        game.boardArray().forEach((peice) => {
+            if(peice.img === 5 && peice.side === this.side) king = peice
         })
+        console.log(king)
+        let oppsmoves = game.getAllMoves() */
+
+        this.moves.forEach((move) => {
+            if(move[0] === x && move[1] === y) {
+                is = true
+            }
+        })
+
+        /* //check check
+        let oldboard = {}
+        for (let key in game.board) {
+            let t = game.board[key]
+            oldboard[key] = new Tile(t.cords.x, t.cords.y, t.img, t.side, false, t.hasmoved)
+        }
+        //castle?
+        let castle = false
+        let move = undefined
+        this.moves.forEach((m) => {
+            if(m.length > 2) {
+                move = m
+                if(Math.abs(m[0]-this.cords.x) > 1) {
+                    if(m[0] === 6) castle = 3
+                    else castle = -4
+                }
+            }
+        })
+        if(castle) {
+            let rook = game.board[`${this.cords.x+castle},${this.cords.y}`]
+            game.board[`${this.cords.x+Math.abs(castle)/castle},${this.cords.y}`].update(rook)
+            rook.update(new Tile(0,0,-1,0))
+        }
+        //swap peices
+        let oldhand = new Tile(this.cords.x,this.cords.y, this.img, this.side)
+        game.board[`${this.cords.x},${this.cords.y}`].update(new Tile(0,0,-1,0))
+        game.board[`${x},${y}`].update(oldhand)
+
+        let check = false
+        oppsmoves.forEach((oppmove) => {
+            if(oppmove[0] === king.cords.x && oppmove[1] === king.cords.y) check = true
+        })
+        game.board = oldboard
+        console.log({...game.board})
+        if(check) {
+            return false
+        } */
+
         return is
     }
 }
@@ -231,10 +281,12 @@ class Game {
                 if((x==3) && (y==0 || y==7)) img=4
                 if((x==4) && (y==0 || y==7)) img=5
                 
+                let moved = 0
                 if(urldata) {
                     if(urldata[`${x},${y}`]) {
                         img = parseInt(urldata[`${x},${y}`].img)
                         side = parseInt(urldata[`${x},${y}`].side)
+                        moved = parseInt(urldata[`${x},${y}`].hasmoved)
                     } else {
                         img = -1
                         side = 0
@@ -242,8 +294,8 @@ class Game {
                 }
 
                 let tile
-                if(this.side) tile = new Tile(x,y,img,side,true)
-                else tile = new Tile(x,y,img,side)
+                if(this.side) tile = new Tile(x,y,img,side,true,moved)
+                else tile = new Tile(x,y,img,side,false,moved)
                 tile.element.addEventListener("click", () => {
                     this.clearMarkup()
                     if(game.moved) return
@@ -253,7 +305,7 @@ class Game {
                         game.hand = tile
                         tile.markup.style = "background-color: yellow; display: block;"
                         game.hand.moves.forEach((move) => {
-                            game.board[`${move[0]},${move[1]}`].markup.style = "background-color: yellow; display: block;"
+                            if(game.hand.isMove(move[0], move[1])) game.board[`${move[0]},${move[1]}`].markup.style = "background-color: yellow; display: block;"
                         })
                     } else {
                         //movement rules
@@ -261,11 +313,11 @@ class Game {
                             game.hand = undefined
                             return
                         }
+                        if(tile.img>=0 && tile.side === game.hand.side) return
                         if(!game.hand.isMove(tile.cords.x, tile.cords.y)) {
                             game.hand = undefined
                             return
                         }
-                        if(tile.img>=0 && tile.side === game.hand.side) return
                         //castle?
                         let castle = false
                         let move = undefined
@@ -275,7 +327,6 @@ class Game {
                                 if(Math.abs(m[0]-game.hand.cords.x) > 1) {
                                     if(m[0] === 6) castle = 3
                                     else castle = -4
-                                    console.log(m[0])
                                 }
                             }
                         })
@@ -288,13 +339,36 @@ class Game {
                         let oldhand = new Tile(game.hand.cords.x,game.hand.cords.y, game.hand.img, game.hand.side)
                         game.board[`${game.hand.cords.x},${game.hand.cords.y}`].update(new Tile(0,0,-1,0))
                         game.board[`${tile.cords.x},${tile.cords.y}`].update(oldhand)
+
                         game.hand = undefined
-                        game.makeLink()
                         game.moved = true
+                        //Pawn Promotion
+                        if(tile.img === 0 && (tile.cords.y === 7 || tile.cords.y === 0)) {
+                            console.log("PAWN PROMOTION")
+                            let promoprompt = document.createElement("div")
+                            promoprompt.classList.add("promotePrompt")
+                            for(let i=4; i>0; i--) {
+                                let queen = document.createElement("img")
+                                queen.src = `${imagepre}images/0${i}.png`
+                                if(tile.side === 0) {
+                                    queen.src = `${imagepre}images/0${i+6}.png`
+                                    if(i+6 > 9) queen.src = `${imagepre}images/${i+6}.png`
+                                }
+                                queen.style = "display: block; position: relative;"
+                                queen.addEventListener("click", () => {
+                                    promoprompt.remove()
+                                    game.board[`${tile.cords.x},${tile.cords.y}`].update(new Tile(0,0,i,tile.side))
+                                    game.makeLink()
+                                })
+                                promoprompt.appendChild(queen)
+                            }
+                            tile.element.appendChild(promoprompt)
+                        } else game.makeLink()
                     }
                 })
                 this.board[`${x},${y}`] = tile
-                row.appendChild(tile.element)
+                if(this.side === 0) row.prepend(tile.element)
+                else row.appendChild(tile.element)
                 tile.element.addEventListener("contextmenu", (event) => {
                     event.preventDefault()
                     if(tile.markup.style.cssText === "") tile.markup.style = "background-color: red; display: block;"
@@ -304,6 +378,23 @@ class Game {
             if(this.side === 0) this.inner.prepend(row)
             else this.inner.appendChild(row)
         }
+    }
+    boardArray() {
+        let array = []
+        Object.keys(this.board).forEach(key => {
+            let x, y
+            let temp = ""
+            key.split("").forEach((char) => {
+                if(char == ",") {
+                    x = parseInt(temp)
+                    temp = ""
+                } else temp += char
+            })
+            y = parseInt(temp)
+            let peice = this.board[`${x},${y}`]
+            if(peice.img > -1) array.push(peice)
+        })
+        return array
     }
     getMoves() {
         Object.keys(this.board).forEach(key => {
@@ -352,6 +443,9 @@ class Game {
                 data += y
                 data += tile.img
                 data += tile.side
+                let moved = 0
+                if(tile.hasmoved) moved = 1
+                data += moved.toString()
             }
         })
         data += this.side.toString()
@@ -361,6 +455,27 @@ class Game {
         navigator.clipboard.writeText(window.location)
         let copied = document.getElementById("copied")
         copied.style = "display: block;"
+    }
+    getAllMoves() {
+        //gets all of oponent's moves
+        let moves = []
+        Object.keys(this.board).forEach(key => {
+            let x, y
+            let temp = ""
+            key.split("").forEach((char) => {
+                if(char == ",") {
+                    x = parseInt(temp)
+                    temp = ""
+                } else temp += char
+            })
+            y = parseInt(temp)
+            let peice = this.board[`${x},${y}`]
+            if(peice.side !== this.side) {
+                peice.getMoves()
+                peice.moves.forEach((move) => {moves.push([move[0],move[1]])})
+            }
+        })
+        return moves
     }
 }
 
@@ -373,13 +488,14 @@ if(data) {
     let chunk = ""
     for(let i=0; i<data.length-1; i++) {
         chunk += data[i]
-        if(i%4===3) {
+        if(i%5===4) {
             let x = chunk[0]
             let y = chunk[1]
             let cords = `${x},${y}`
             let img = chunk[2]
             let side = chunk[3]
-            peices[cords] = {img,side}
+            let hasmoved = chunk[4]
+            peices[cords] = {img,side,hasmoved}
             chunk = ""
         }
     }
@@ -390,6 +506,7 @@ game.getMoves()
 
 function resetGame() {
     let url = new URL(window.location)
-    url.search = ""
-    window.location = url
+    url.searchParams.set("data", "")
+    history.replaceState(null, "", url)
+    location.reload()
 }
