@@ -1,0 +1,14 @@
+{
+  "title": "Chess",
+  "desc": "Unfinished chess in JavaScript",
+
+  "status": "garbage",
+  "version": "v0.97",
+
+  "date": "4/25/2025",
+
+  "tags": [
+    "javascript",
+    "game"
+  ]
+}
